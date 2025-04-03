@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import os
+import subprocess
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)  # Allow all routes and credentials
@@ -47,6 +48,9 @@ def add_transaction():
     )
     db.session.add(new_transaction)
     db.session.commit()
+
+    subprocess.run(["python", "backend/updategraph.py"])
+    
     return jsonify({'message': 'Transaction added!', 'id': new_transaction.id}), 201
 
 @app.route('/transactions/<int:id>', methods=['DELETE', 'OPTIONS'])
@@ -68,6 +72,27 @@ def delete_transaction(id):
 
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
+
+@app.route("/latest_plot/<plot_type>")
+def latest_plot(plot_type):
+    plot_dir = os.path.join(BASE_DIR, "static", "plots")
+
+    # Ensure the directory exists
+    if not os.path.exists(plot_dir):
+        return jsonify({"error": "Plot directory does not exist"}), 404
+
+    # Find the latest file matching the plot type
+    files = sorted(
+        [f for f in os.listdir(plot_dir) if plot_type in f],
+        key=lambda x: os.path.getmtime(os.path.join(plot_dir, x)),
+        reverse=True
+    )
+
+    if files:
+        return send_from_directory(plot_dir, files[0])
+
+    return jsonify({"error": "No plot found"}), 404
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
