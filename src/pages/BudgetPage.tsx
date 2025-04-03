@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { getTransactions, addTransaction, deleteTransaction } from '../api';
+import { useTheme } from "../ThemeContext";
 
 interface Expense {
   id: number;
@@ -11,6 +12,9 @@ interface Expense {
 }
 
 export default function BudgetPage() {
+
+  const { darkMode } = useTheme();
+
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [newExpense, setNewExpense] = useState({
@@ -76,7 +80,7 @@ export default function BudgetPage() {
   
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 py-8`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-xl shadow-lg p-8">
           <div className="flex justify-between items-center mb-8">
